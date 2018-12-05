@@ -11,6 +11,7 @@ import com.viettel.iParkingAdapter.utils.Constants;
 import org.apache.commons.lang3.ArrayUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 
 
 import java.nio.ByteOrder;
@@ -19,6 +20,15 @@ import java.util.Arrays;
 public class BootMessageBs extends BaseBusiness{
 
     private byte[] byteData;
+
+    @Value("${cloud.api.key.header}")
+    String apiKeyHeader;
+
+    @Value("${cloud.api.key.value}")
+    String apiKey;
+
+    @Value("${cloud.api.bootevent.url}")
+    String bootEventUrl;
 
     public BootMessageBs(OriginalMessage originalMessage) {
         super(originalMessage);
@@ -30,14 +40,16 @@ public class BootMessageBs extends BaseBusiness{
         logger.info("decode boot msg data from byte data");
         BootMsgData bootMsgData = decodeData();
         logger.info(bootMsgData);
+        //send msg into cloud
+        sendDataBootToCloud(originalMessage,bootMsgData);
         //build msg response and send it to device
         OriginalMessage responseMsg = buildResponseMsg();
         logger.info(responseMsg);
         responseDevice(responseMsg);
-        sendDataBootToCloud(originalMessage,bootMsgData);
     }
 
     private BootMsgData decodeData(){
+
         BootMsgData bootMsgData = new BootMsgData();
         bootMsgData.setProductSn(ByteUtils.bytesToHex(Arrays.copyOfRange(byteData,0,4), ByteOrder.LITTLE_ENDIAN));
         bootMsgData.setDeviceType(ByteUtils.bytesToHex(Arrays.copyOfRange(byteData,4,5), ByteOrder.LITTLE_ENDIAN));
@@ -69,8 +81,8 @@ public class BootMessageBs extends BaseBusiness{
     private void sendDataBootToCloud(OriginalMessage orMsg,BootMsgData bMsg){
         Client client = Client.create();
         WebResource.Builder webResource = client
-                .resource("http://cyan.vietteliot.vn/hooks/restin2/bootEvent")
-                .header("x-api-key", "5b9f1329b35ad715084fbdec-bkgs8Ee3KxFWikUMkxWLXxxDK5OE6HJc");
+                .resource(bootEventUrl)
+                .header(apiKeyHeader, apiKey);
 
         JSONObject obj = new JSONObject();
 

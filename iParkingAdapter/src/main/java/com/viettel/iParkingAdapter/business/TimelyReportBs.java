@@ -9,6 +9,7 @@ import com.viettel.iParkingAdapter.message.TimelyReportMsg;
 import com.viettel.iParkingAdapter.utils.ByteUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -17,6 +18,14 @@ public class TimelyReportBs extends BaseBusiness {
 
     private byte[] byteData;
 
+    @Value("${cloud.api.key.header}")
+    String apiKeyHeader;
+
+    @Value("${cloud.api.key.value}")
+    String apiKey;
+
+    @Value("${cloud.api.timelyreport.url}")
+    String timelyEventUrl;
     public TimelyReportBs(OriginalMessage originalMessage) {
         super(originalMessage);
     }
@@ -54,8 +63,8 @@ public class TimelyReportBs extends BaseBusiness {
     private void sendDataTimelyToCloud(OriginalMessage orMsg, TimelyReportMsg tMsg){
         Client client = Client.create();
         WebResource.Builder webResource = client
-                .resource("http://cyan.vietteliot.vn/hooks/restin2/timelyReportEvent")
-                .header("x-api-key", "5b9f1329b35ad715084fbdec-bkgs8Ee3KxFWikUMkxWLXxxDK5OE6HJc");
+                .resource(timelyEventUrl)
+                .header(apiKeyHeader, apiKey);
 
         JSONObject obj = new JSONObject();
 
@@ -83,8 +92,5 @@ public class TimelyReportBs extends BaseBusiness {
         if(response.getStatus() == 200){
             logger.info("Send report successful");
         }
-
-
-
     }
 }
