@@ -12,6 +12,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 
 import java.nio.ByteOrder;
@@ -20,15 +21,6 @@ import java.util.Arrays;
 public class BootMessageBs extends BaseBusiness{
 
     private byte[] byteData;
-
-    @Value("${cloud.api.key.header}")
-    String apiKeyHeader;
-
-    @Value("${cloud.api.key.value}")
-    String apiKey;
-
-    @Value("${cloud.api.bootevent.url}")
-    String bootEventUrl;
 
     public BootMessageBs(OriginalMessage originalMessage) {
         super(originalMessage);
@@ -81,8 +73,8 @@ public class BootMessageBs extends BaseBusiness{
     private void sendDataBootToCloud(OriginalMessage orMsg,BootMsgData bMsg){
         Client client = Client.create();
         WebResource.Builder webResource = client
-                .resource(bootEventUrl)
-                .header(apiKeyHeader, apiKey);
+                .resource("http://cyan.vietteliot.vn/hooks/restin2/bootEvent")
+                .header("x-api-key", "5b9f1329b35ad715084fbdec-bkgs8Ee3KxFWikUMkxWLXxxDK5OE6HJc");
 
         JSONObject obj = new JSONObject();
 

@@ -6,6 +6,8 @@ import com.viettel.iParkingAdapter.utils.TCPChannelManager;
 import io.netty.channel.Channel;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Component;
+
 
 public abstract class BaseBusiness {
 
