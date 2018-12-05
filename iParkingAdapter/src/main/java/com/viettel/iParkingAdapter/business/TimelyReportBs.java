@@ -1,8 +1,14 @@
 package com.viettel.iParkingAdapter.business;
 
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import com.viettel.iParkingAdapter.message.BootMsgData;
 import com.viettel.iParkingAdapter.message.OriginalMessage;
 import com.viettel.iParkingAdapter.message.TimelyReportMsg;
 import com.viettel.iParkingAdapter.utils.ByteUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -21,6 +27,7 @@ public class TimelyReportBs extends BaseBusiness {
         logger.info("decode timely report msg data");
         TimelyReportMsg timelyReportMsg = decodeData();
         logger.info(timelyReportMsg);
+        sendDataTimelyToCloud(originalMessage,timelyReportMsg);
     }
 
     private TimelyReportMsg decodeData(){
@@ -42,5 +49,42 @@ public class TimelyReportBs extends BaseBusiness {
         msg.setCurrentMagneticFieldZ(ByteUtils.bytesToHex(Arrays.copyOfRange(byteData,30,32), ByteOrder.LITTLE_ENDIAN));
 
         return msg;
+    }
+
+    private void sendDataTimelyToCloud(OriginalMessage orMsg, TimelyReportMsg tMsg){
+        Client client = Client.create();
+        WebResource.Builder webResource = client
+                .resource("http://cyan.vietteliot.vn/hooks/restin2/timelyReportEvent")
+                .header("x-api-key", "5b9f1329b35ad715084fbdec-bkgs8Ee3KxFWikUMkxWLXxxDK5OE6HJc");
+
+        JSONObject obj = new JSONObject();
+
+        try {
+
+            obj.put("functionCode",orMsg.getFunctionCode());
+            obj.put("remainingBattery",tMsg.getRemainingBattery());
+            obj.put("batteryStatus",tMsg.getTerminerStatus().isBp());
+            obj.put("wirelessModule",tMsg.getTerminerStatus().isWm());
+            obj.put("guard",tMsg.getTerminerStatus().isSf());
+            obj.put("deviceStatus",tMsg.getTerminerStatus().isPs());
+            obj.put("signalStrength",tMsg.getSignalStrength());
+            obj.put("signalCoverageLevel",tMsg.getSignalCoverage());
+            obj.put("snr",tMsg.getSnr());
+            obj.put("comunityPci",tMsg.getComunityPci());
+            obj.put("deviceId",orMsg.getTerminalId());
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        ClientResponse response = webResource.type("application/json")
+                .post(ClientResponse.class, obj.toString());
+
+        if(response.getStatus() == 200){
+            logger.info("Send report successful");
+        }
+
+
+
     }
 }

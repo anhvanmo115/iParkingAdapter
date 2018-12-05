@@ -1,11 +1,17 @@
 package com.viettel.iParkingAdapter.business;
 
 import com.sun.deploy.util.ArrayUtil;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
 import com.viettel.iParkingAdapter.message.BootMsgData;
 import com.viettel.iParkingAdapter.message.OriginalMessage;
 import com.viettel.iParkingAdapter.utils.ByteUtils;
 import com.viettel.iParkingAdapter.utils.Constants;
 import org.apache.commons.lang3.ArrayUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -28,6 +34,7 @@ public class BootMessageBs extends BaseBusiness{
         OriginalMessage responseMsg = buildResponseMsg();
         logger.info(responseMsg);
         responseDevice(responseMsg);
+        sendDataBootToCloud(originalMessage,bootMsgData);
     }
 
     private BootMsgData decodeData(){
@@ -57,5 +64,38 @@ public class BootMessageBs extends BaseBusiness{
         responseMsg.setData(respByteData);
 
         return responseMsg;
+    }
+
+    private void sendDataBootToCloud(OriginalMessage orMsg,BootMsgData bMsg){
+        Client client = Client.create();
+        WebResource.Builder webResource = client
+                .resource("http://cyan.vietteliot.vn/hooks/restin2/bootEvent")
+                .header("x-api-key", "5b9f1329b35ad715084fbdec-bkgs8Ee3KxFWikUMkxWLXxxDK5OE6HJc");
+
+        JSONObject obj = new JSONObject();
+
+        try {
+            obj.put("deviceId",orMsg.getTerminalId());
+            obj.put("deviceType",bMsg.getDeviceType());
+            obj.put("functionCode",orMsg.getFunctionCode());
+            obj.put("hardwareVersion",bMsg.getHardwareVersion());
+            obj.put("softwareVersion",bMsg.getSoftwareVersion());
+            obj.put("timelyReportInterval",bMsg.getTimelyReportInterval());
+            obj.put("imei",bMsg.getImei());
+            obj.put("imsi",bMsg.getImsi());
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        ClientResponse response = webResource.type("application/json")
+                .post(ClientResponse.class, obj.toString());
+
+        if(response.getStatus() == 200){
+            logger.info("Send boot msg successful");
+        }
+
+
+
     }
 }
