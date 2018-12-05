@@ -12,6 +12,7 @@ public class TCPChannelManager {
     public static HashMap<String, Channel> getChannels(){
         if(channelHashMap == null){
             channelHashMap = new HashMap<>();
+
         }
         return channelHashMap;
     }
