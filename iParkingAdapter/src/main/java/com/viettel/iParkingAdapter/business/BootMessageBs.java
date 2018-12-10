@@ -1,20 +1,23 @@
 package com.viettel.iParkingAdapter.business;
 
 import com.sun.deploy.util.ArrayUtil;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
+//import com.sun.jersey.api.client.Client;
+//import com.sun.jersey.api.client.ClientResponse;
+//import com.sun.jersey.api.client.WebResource;
 import com.viettel.iParkingAdapter.message.BootMsgData;
 import com.viettel.iParkingAdapter.message.OriginalMessage;
 import com.viettel.iParkingAdapter.utils.ByteUtils;
+import com.viettel.iParkingAdapter.utils.CheckCRC;
 import com.viettel.iParkingAdapter.utils.Constants;
 import org.apache.commons.lang3.ArrayUtils;
+import org.glassfish.jersey.client.ClientResponse;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 
+import javax.ws.rs.client.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
@@ -29,19 +32,21 @@ public class BootMessageBs extends BaseBusiness{
     @Override
     public void onProcess() {
         byteData = originalMessage.getData();
+       // logger.info(byteData);
+        //logger.info(CheckCRC.CRC16(byteData,byteData.length));
         logger.info("decode boot msg data from byte data");
         BootMsgData bootMsgData = decodeData();
         logger.info(bootMsgData);
-        //send msg into cloud
-        sendDataBootToCloud(originalMessage,bootMsgData);
         //build msg response and send it to device
         OriginalMessage responseMsg = buildResponseMsg();
-//        logger.info(responseMsg);
-//        responseDevice(responseMsg);
+        logger.info(responseMsg);
+        responseDevice(responseMsg);
+        logger.info("send data boot to cloud");
+        sendDataBootToCloud(originalMessage,bootMsgData);
+        //sendDataBootToCloudMQTT(originalMessage,bootMsgData);
     }
 
     private BootMsgData decodeData(){
-
         BootMsgData bootMsgData = new BootMsgData();
         bootMsgData.setProductSn(ByteUtils.bytesToHex(Arrays.copyOfRange(byteData,0,4), ByteOrder.LITTLE_ENDIAN));
         bootMsgData.setDeviceType(ByteUtils.bytesToHex(Arrays.copyOfRange(byteData,4,5), ByteOrder.LITTLE_ENDIAN));
@@ -71,10 +76,11 @@ public class BootMessageBs extends BaseBusiness{
     }
 
     private void sendDataBootToCloud(OriginalMessage orMsg,BootMsgData bMsg){
-        Client client = Client.create();
-        WebResource.Builder webResource = client
-                .resource("http://cyan.vietteliot.vn/hooks/restin2/bootEvent")
-                .header("x-api-key", "5b9f1329b35ad715084fbdec-bkgs8Ee3KxFWikUMkxWLXxxDK5OE6HJc");
+        Client client = ClientBuilder.newClient();
+        WebTarget webTarget
+                = client.target("http://cyan.vietteliot.vn/hooks/restin2/bootEvent");
+
+
 
         JSONObject obj = new JSONObject();
 
@@ -92,14 +98,21 @@ public class BootMessageBs extends BaseBusiness{
             e.printStackTrace();
         }
 
-        ClientResponse response = webResource.type("application/json")
-                .post(ClientResponse.class, obj.toString());
+        Invocation.Builder invocationBuilder
+                = webTarget.request(MediaType.APPLICATION_JSON)
+                .header("x-api-key", "5b9f1329b35ad715084fbdec-bkgs8Ee3KxFWikUMkxWLXxxDK5OE6HJc");
+        Response response = invocationBuilder.post(Entity.entity(obj.toString(), MediaType.APPLICATION_JSON));
 
+        //
+        // logger.info(response);
         if(response.getStatus() == 200){
             logger.info("Send boot msg successful");
         }
 
 
+    }
+
+    private void sendDataBootToCloudMQTT(OriginalMessage orMsg,BootMsgData bMsg){
 
     }
 }

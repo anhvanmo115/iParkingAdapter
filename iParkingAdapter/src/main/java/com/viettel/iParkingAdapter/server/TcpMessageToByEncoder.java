@@ -26,7 +26,7 @@ public class TcpMessageToByEncoder extends MessageToMessageEncoder<OriginalMessa
         bytes = ArrayUtils.addAll(bytes,ByteUtils.hexStringToByteArray(orgMsg.getTerminalId()));
         bytes = ArrayUtils.addAll(bytes,ByteUtils.hexStringToByteArray(orgMsg.getMessageId()));
         bytes = ArrayUtils.addAll(bytes,ByteUtils.hexStringToByteArray(orgMsg.getDataLength()));
-        bytes = ArrayUtils.addAll(bytes,orgMsg.getData());
+        if(orgMsg.getData() != null) bytes = ArrayUtils.addAll(bytes,orgMsg.getData());
         bytes = ArrayUtils.addAll(bytes,ByteUtils.hexStringToByteArray(orgMsg.getCrc()));
         list.add(bytes);
         logger.info("=========================== end code done =============================");

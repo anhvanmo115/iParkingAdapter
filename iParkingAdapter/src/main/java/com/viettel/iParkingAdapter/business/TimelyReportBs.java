@@ -1,8 +1,6 @@
 package com.viettel.iParkingAdapter.business;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
+
 import com.viettel.iParkingAdapter.message.BootMsgData;
 import com.viettel.iParkingAdapter.message.OriginalMessage;
 import com.viettel.iParkingAdapter.message.TimelyReportMsg;
@@ -10,6 +8,9 @@ import com.viettel.iParkingAdapter.utils.ByteUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.ws.rs.client.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
@@ -27,6 +28,7 @@ public class TimelyReportBs extends BaseBusiness {
         logger.info("decode timely report msg data");
         TimelyReportMsg timelyReportMsg = decodeData();
         logger.info(timelyReportMsg);
+        logger.info("send data timely to cloud");
         sendDataTimelyToCloud(originalMessage,timelyReportMsg);
     }
 
@@ -52,17 +54,16 @@ public class TimelyReportBs extends BaseBusiness {
     }
 
     private void sendDataTimelyToCloud(OriginalMessage orMsg, TimelyReportMsg tMsg){
-        Client client = Client.create();
-        WebResource.Builder webResource = client
-                .resource("http://cyan.vietteliot.vn/hooks/restin2/timelyReportEvent")
-                .header("x-api-key", "5b9f1329b35ad715084fbdec-bkgs8Ee3KxFWikUMkxWLXxxDK5OE6HJc");
-
+        Client client = ClientBuilder.newClient();
+        WebTarget webTarget
+                = client.target("http://cyan.vietteliot.vn/hooks/restin2/timelyReportEvent");
         JSONObject obj = new JSONObject();
 
         try {
 
             obj.put("functionCode",orMsg.getFunctionCode());
             obj.put("remainingBattery",tMsg.getRemainingBattery());
+            obj.put("batteryStatus",tMsg.getTerminerStatus().isBp());
             obj.put("wirelessModule",tMsg.getTerminerStatus().isWm());
             obj.put("guard",tMsg.getTerminerStatus().isSf());
             obj.put("deviceStatus",tMsg.getTerminerStatus().isPs());
@@ -76,11 +77,16 @@ public class TimelyReportBs extends BaseBusiness {
             e.printStackTrace();
         }
 
-        ClientResponse response = webResource.type("application/json")
-                .post(ClientResponse.class, obj.toString());
+        Invocation.Builder invocationBuilder
+                = webTarget.request(MediaType.APPLICATION_JSON)
+                .header("x-api-key", "5b9f1329b35ad715084fbdec-bkgs8Ee3KxFWikUMkxWLXxxDK5OE6HJc");
+        Response response = invocationBuilder.post(Entity.entity(obj.toString(), MediaType.APPLICATION_JSON));
 
         if(response.getStatus() == 200){
             logger.info("Send report successful");
         }
+
+
+
     }
 }
