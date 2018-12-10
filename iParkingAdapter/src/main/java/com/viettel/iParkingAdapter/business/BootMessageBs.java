@@ -36,8 +36,8 @@ public class BootMessageBs extends BaseBusiness{
         sendDataBootToCloud(originalMessage,bootMsgData);
         //build msg response and send it to device
         OriginalMessage responseMsg = buildResponseMsg();
-        logger.info(responseMsg);
-        responseDevice(responseMsg);
+//        logger.info(responseMsg);
+//        responseDevice(responseMsg);
     }
 
     private BootMsgData decodeData(){

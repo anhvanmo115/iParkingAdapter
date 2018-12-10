@@ -63,7 +63,6 @@ public class TimelyReportBs extends BaseBusiness {
 
             obj.put("functionCode",orMsg.getFunctionCode());
             obj.put("remainingBattery",tMsg.getRemainingBattery());
-            obj.put("batteryStatus",tMsg.getTerminerStatus().isBp());
             obj.put("wirelessModule",tMsg.getTerminerStatus().isWm());
             obj.put("guard",tMsg.getTerminerStatus().isSf());
             obj.put("deviceStatus",tMsg.getTerminerStatus().isPs());

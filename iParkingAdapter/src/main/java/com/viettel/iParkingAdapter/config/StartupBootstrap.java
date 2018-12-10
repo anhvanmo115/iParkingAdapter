@@ -1,5 +1,6 @@
 package com.viettel.iParkingAdapter.config;
 
+import com.viettel.iParkingAdapter.server.TCPClient;
 import com.viettel.iParkingAdapter.server.TCPServer;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -20,6 +21,7 @@ public class StartupBootstrap implements ApplicationListener<ContextRefreshedEve
     private Integer PORT;
 
     private TCPServer tcpServer;
+    private TCPClient tcpClient;
 
     private static Logger logger = LogManager.getLogger(StartupBootstrap.class);
 
@@ -27,8 +29,10 @@ public class StartupBootstrap implements ApplicationListener<ContextRefreshedEve
     public void onApplicationEvent(final ContextRefreshedEvent event) {
         Thread thread = new Thread(()->{
             try {
-                tcpServer = new TCPServer(PORT);
-                tcpServer.startServer();
+//                tcpServer = new TCPServer(PORT);
+//                tcpServer.startServer();
+                tcpClient = new TCPClient(PORT);
+//                tcpClient.send();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -41,7 +45,7 @@ public class StartupBootstrap implements ApplicationListener<ContextRefreshedEve
     @PreDestroy
     public void onDestroy(){
         logger.info("shutdown server ...");
-        tcpServer.stopServer();
+//        tcpServer.stopServer();
     }
 
 

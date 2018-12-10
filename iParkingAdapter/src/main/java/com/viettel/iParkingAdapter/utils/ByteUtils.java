@@ -122,19 +122,8 @@ public class ByteUtils {
     }
 
     public static void main(String[] args) {
-        String hex = "01";
-        byte[] bytes = hexStringToByteArray(hex);
-        ByteBuffer bb = ByteBuffer.wrap(bytes);
-        bb.order(ByteOrder.LITTLE_ENDIAN);
-        char v=0;
-        String hexstr = "";
-        while( bb.hasRemaining()) {
-//            v = bb.get();
-            /* Do something with v... */
-            hexstr =  byteToHex(bb.get()) + hexstr;
-//            System.out.println(Integer.toHexString(v & 0xffff));
-        }
-        System.out.println(hexstr);
+        String hex = "123456";
+
 
 
 
