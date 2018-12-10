@@ -10,6 +10,7 @@ import javax.ws.rs.ApplicationPath;
 @ApplicationPath("/command")
 public class JerseyConfig extends ResourceConfig {
     public JerseyConfig(){
+
         register(CommandController.class);
     }
 }
